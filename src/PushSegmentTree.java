@@ -1,8 +1,5 @@
 import java.io.*;
 
-/**
- * Created by Уладзімір Асіпчук on 23.02.15.
- */
 public class PushSegmentTree {
     private static int globN = 0;
     private static int y = 0;
@@ -31,12 +28,30 @@ public class PushSegmentTree {
         int res = 0;
 
         while (st.nextToken() == StreamTokenizer.TT_NUMBER) {
+            System.out.println("tree");
+            for (int k = 0; k < tree.length; k++) {
+                System.out.println(tree[k]);
+            }
+            System.out.println("treeSum");
+            for (int k = 0; k < treeSum.length; k++) {
+                System.out.println(treeSum[k]);
+            }
+            System.out.println("treeMax");
+            for (int k = 0; k < treeMax.length; k++) {
+                System.out.println(treeMax[k]);
+            }
+            System.out.println("treeMin");
+            for (int k = 0; k < treeMin.length; k++) {
+                System.out.println(treeMin[k]);
+            }
+
             switch((int)st.nval) {
                 case 0:
-                    for (int k = 0; k < treeSum.length; k++) {
-                        System.out.println(treeSum[k]);
-                    }
-                    break;
+//                    for (int k = 0; k < treeMax.length; k++) {
+//                        System.out.println(treeMax[k]);
+//                    }
+                    out.flush();
+                    return;
                 case 1:
                     i = 0;
                     val = 0;
@@ -44,7 +59,7 @@ public class PushSegmentTree {
                         i = (int)st.nval;
                     if (st.nextToken() == StreamTokenizer.TT_NUMBER)
                         val = (int)st.nval;
-                    update(treeSum, treeMax, treeMin, tree, 1, 0, n-1, i, i, val);
+                    update(treeSum, treeMax, treeMin, tree, 1, 0, n-1, i, i, val, 0);
                     break;
                 case 2:
                     if (st.nextToken() == StreamTokenizer.TT_NUMBER)
@@ -53,7 +68,7 @@ public class PushSegmentTree {
                         j = (int)st.nval;
                     if (st.nextToken() == StreamTokenizer.TT_NUMBER)
                         val = (int)st.nval;
-                    updateAdd(treeSum, treeMax, treeMin, tree, 1, 0, n - 1, i, j, val);
+                    updateAdd(treeSum, treeMax, treeMin, tree, 1, 0, n - 1, i, j, val, 0);
                     break;
                 case 3:
                     i = 0;
@@ -62,7 +77,7 @@ public class PushSegmentTree {
                         i = (int)st.nval;
                     if (st.nextToken() == StreamTokenizer.TT_NUMBER)
                         j = (int)st.nval;
-                    res = sum(treeSum, tree, 1, 0, n - 1, i, j);
+                    res = sum(treeSum, treeMax, treeMin, tree, 1, 0, n - 1, i, j, 0);
                     out.println(res);
                     break;
                 case 4:
@@ -72,7 +87,7 @@ public class PushSegmentTree {
                         i = (int)st.nval;
                     if (st.nextToken() == StreamTokenizer.TT_NUMBER)
                         j = (int)st.nval;
-                    res = min(treeMin, tree, 1, 0, n - 1, i, j);
+                    res = min(treeSum, treeMax, treeMin, tree, 1, 0, n - 1, i, j, 0);
                     out.println(res);
                     break;
                 case 5:
@@ -82,148 +97,136 @@ public class PushSegmentTree {
                         i = (int)st.nval;
                     if (st.nextToken() == StreamTokenizer.TT_NUMBER)
                         j = (int)st.nval;
-                    res = max(treeMax, tree, 1, 0, n - 1, i, j);
+                    res = max(treeSum, treeMax, treeMin, tree, 1, 0, n - 1, i, j, 0);
                     out.println(res);
                     break;
 
             }
 
         }
-        out.flush();
 
     }
 
-    public static int sum (int[] treeSum, int[] tree, int v, int tl, int tr, int l, int r) {
-        if (l > r)
-            return 0;
-        if (l == tl && r == tr) {
-            if (treeSum[v] == 0)
-                return tree[v]*(r-l+1);
-            return treeSum[v];
-        }
-        pushAdd(tree, v);
-        int tm = (tl + tr) / 2;
-        treeSum[v] =  sum (treeSum, tree, v*2, tl, tm, l, Math.min(r, tm))
-                + sum (treeSum, tree, v*2+1, tm+1, tr, Math.max(l, tm + 1), r);
-        return treeSum[v];
-    }
-
-    public static int min (int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r) {
-        if (l > r)
-            return Integer.MAX_VALUE;
-        if (l == tl && r == tr) {
-            if (treeMin[v] == 0)
-                return tree[v];
-            return treeMin[v];
-        }
-        pushAdd(tree, v);
-        int tm = (tl + tr) / 2;
-        treeMin[v] = Math.min(min(treeMin, tree, v * 2, tl, tm, l, Math.min(r, tm)),
-                min(treeMin, tree, v*2+1, tm+1, tr, Math.max(l, tm + 1), r));
-        return treeMin[v];
-    }
-
-    public static int max (int[] treeMax, int[] tree, int v, int tl, int tr, int l, int r) {
+    public static Cortege update (int[] treeSum, int[] treeMax, int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r, int new_val, int apushVal) {
         if (l > r) {
-            return Integer.MIN_VALUE;
-        }
-        if (l == tl && r == tr) {
-            if (treeMax[v] == 0)
-                return tree[v];
-            return treeMax[v];
-        }
-        pushAdd(tree, v);
-        int tm = (tl + tr) / 2;
-        treeMax[v] = Math.max(max(treeMax, tree, v * 2, tl, tm, l, Math.min(r, tm)),
-                max(treeMax, tree, v*2+1, tm+1, tr, Math.max(l, tm + 1), r));
-        return treeMax[v];
-    }
-
-    public static Cortege update (int[] treeSum, int[] treeMax, int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r, int new_val) {
-        if (l > r) {
-            treeSum[v] = tree[v]*(l-r+1);
-            treeMax[v] = tree[v];
-            treeMin[v] = tree[v];
+            treeSum[v] += apushVal*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
             return new Cortege(treeSum[v], treeMax[v], treeMin[v], false);
         }
         if (l == tl && r == tr) {
-            treeSum[v] = new_val*(r-l+1);
+            treeSum[v] = new_val*(tr-tl+1);
             treeMax[v] = new_val;
             treeMin[v] = new_val;
             return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
         }
         else {
-            pushAdd(tree, v);
+            int pushVal = push(tree, v);
             int tm = (tl + tr) / 2;
-            Cortege left = update(treeSum, treeMax, treeMin, tree, v * 2, tl, tm, l, Math.min(r, tm), new_val);
-            Cortege right = update(treeSum, treeMax, treeMin, tree, v * 2 + 1, tm + 1, tr, Math.max(l, tm + 1), r, new_val);
-//            if (!left.isUsed && !right.isUsed)
-//                return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
-//            if (!left.isUsed) {
-//                treeSum[v] += left.sum;
-//                treeMax[v] = left.max;
-//                treeMin[v] = left.min;
-//                return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
-//            }
-//            if (!right.isUsed) {
-//                treeSum[v] += right.sum;
-//                treeMax[v] = right.max;
-//                treeMin[v] = right.min;
-//                return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
-//
-//            }
-            treeSum[v] += left.sum + right.sum;
-            treeMax[v] = Math.max(left.max, right.max);
-            treeMin[v] = Math.min(left.min, right.min);
+            Cortege left = update(treeSum, treeMax, treeMin, tree, v * 2, tl, tm, l, Math.min(r, tm), new_val, pushVal);
+            Cortege right = update(treeSum, treeMax, treeMin, tree, v * 2 + 1, tm + 1, tr, Math.max(l, tm + 1), r, new_val, pushVal);
+
+            treeSum[v] = left.sum + right.sum + tree[v]*(tr-tl+1);
+            treeMax[v] = Math.max(left.max, right.max) + tree[v];
+            treeMin[v] = Math.min(left.min, right.min) + tree[v];
             return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
         }
     }
 
-    public static Cortege updateAdd (int[] treeSum, int[] treeMax, int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r, int add) {
+    public static int sum (int[] treeSum, int[] treeMax, int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r, int apushVal) {
         if (l > r) {
-            treeSum[v] = tree[v]*(tr-tl+1);
-            treeMax[v] = tree[v];
-            treeMin[v] = tree[v];
+            treeSum[v] += apushVal*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
+            return 0;
+        }
+        if (l == tl && r == tr) {
+            treeSum[v] += (apushVal)*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
+            return treeSum[v];
+        }
+        int tm = (tl + tr) / 2;
+        int pushVal = push(tree, v);
+        treeSum[v] = sum (treeSum, treeMax, treeMin, tree, v*2, tl, tm, l, Math.min(r, tm), pushVal)
+                + sum (treeSum, treeMax, treeMin, tree, v*2+1, tm+1, tr, Math.max(l, tm + 1), r, pushVal) + tree[v]*(r-l+1);
+        return treeSum[v];
+    }
+
+    public static int min (int[] treeSum, int[] treeMax, int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r, int apushVal) {
+        if (l > r) {
+            treeSum[v] += apushVal*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
+            return Integer.MAX_VALUE;
+        }
+        if (l == tl && r == tr) {
+            treeSum[v] += (apushVal)*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
+            return treeMin[v];
+        }
+        int tm = (tl + tr) / 2;
+        int pushVal = push(tree, v);
+        treeMin[v] = Math.min(min(treeSum, treeMax, treeMin, tree, v * 2, tl, tm, l, Math.min(r, tm), pushVal),
+                min(treeSum, treeMax, treeMin, tree, v * 2 + 1, tm + 1, tr, Math.max(l, tm + 1), r, pushVal)) + tree[v];
+        return treeMin[v];
+    }
+
+
+    public static int max (int[] treeSum, int[] treeMax, int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r, int apushVal) {
+        if (l > r) {
+            treeSum[v] += apushVal*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
+            return Integer.MIN_VALUE;
+        }
+        if (l == tl && r == tr) {
+            treeSum[v] += (apushVal)*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
+            return treeMax[v];
+        }
+        int tm = (tl + tr) / 2;
+        int pushVal = push(tree, v);
+        treeMax[v] = Math.max(max(treeSum, treeMax, treeMin, tree, v * 2, tl, tm, l, Math.min(r, tm), pushVal),
+                max(treeSum, treeMax, treeMin, tree, v*2+1, tm+1, tr, Math.max(l, tm + 1), r, pushVal)) + tree[v];
+        return treeMax[v];
+    }
+
+    public static Cortege updateAdd (int[] treeSum, int[] treeMax, int[] treeMin, int[] tree, int v, int tl, int tr, int l, int r, int add, int apushVal) {
+        if (l > r) {
+            treeSum[v] += apushVal*(tr-tl+1);
+            treeMax[v] += apushVal;
+            treeMin[v] += apushVal;
             return new Cortege(treeSum[v], treeMax[v], treeMin[v], false);
         }
         if (l == tl && tr == r) {
             tree[v] += add;
-            treeSum[v] = tree[v]*(r-l+1);
-            treeMax[v] = tree[v];
-            treeMin[v] = tree[v];
+            treeSum[v] += (add+apushVal)*(tr-tl+1);
+            treeMax[v] += add + apushVal;
+            treeMin[v] += add + apushVal;
             return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
         } else {
-            pushAdd(tree, v);
+            int pushVal = push(tree, v);
             int tm = (tl + tr) / 2;
+            Cortege left = updateAdd(treeSum, treeMax, treeMin, tree, v * 2, tl, tm, l, Math.min(r, tm), add, pushVal);
+            Cortege right = updateAdd(treeSum, treeMax, treeMin, tree, v * 2 + 1, tm + 1, tr, Math.max(l, tm + 1), r, add, pushVal);
 
-            Cortege left = updateAdd(treeSum, treeMax, treeMin, tree, v * 2, tl, tm, l, Math.min(r, tm), add);
-            Cortege right = updateAdd(treeSum, treeMax, treeMin, tree, v * 2 + 1, tm + 1, tr, Math.max(l, tm + 1), r, add);
-//            if (!left.isUsed && !right.isUsed)
-//                return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
-//            if (!left.isUsed) {
-//                treeSum[v] += left.sum;
-//                treeMax[v] = left.max;
-//                treeMin[v] = left.min;
-//                return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
-//            }
-//            if (!right.isUsed) {
-//                treeSum[v] += right.sum;
-//                treeMax[v] = right.max;
-//                treeMin[v] = right.min;
-//                return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
-//
-//            }
-            treeSum[v] = left.sum + right.sum;
-            treeMax[v] = Math.max(left.max, right.max);
-            treeMin[v] = Math.min(left.min, right.min);
+            treeSum[v] = left.sum + right.sum + tree[v]*(tr-tl+1);
+            treeMax[v] = Math.max(left.max, right.max) + tree[v];
+            treeMin[v] = Math.min(left.min, right.min) + tree[v];
             return new Cortege(treeSum[v], treeMax[v], treeMin[v], true);
         }
     }
-
-    public static void pushAdd (int[] t, int v) {
+    // we should do not push from leave
+    // but this code wil execute only not from leave
+    public static int push(int[] t, int v) {
         t[v*2] += t[v];
         t[v*2+1] += t[v];
+        int temp = t[v];
         t[v] = 0;
+        return temp;
     }
 
 
